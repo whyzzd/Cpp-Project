@@ -217,7 +217,7 @@
   newSpace[this->m_EmpNum + i] = worker;
   ```
 
-  第二处：init_Emp()函数当中，是从文件中读取信息后，然后根据部门编号的值来初始化对应的对象。
+  第二处：init_Emp()函数当中，从文件中读取信息后，然后根据部门编号的值来初始化对应部门的职员。
 
   ```C++
   while (ifs >> id&&ifs >> name&&ifs >> did)
@@ -239,7 +239,7 @@
   }
   ```
 
-  第三处：Mod_Emp()函数中，根据选择的部门编号，来初始化对应部门的员工
+  第三处：Mod_Emp()函数中，根据选择的部门编号，来初始化对应部门的职员
 
   ```C++
   Worker* wker=NULL;
@@ -260,16 +260,161 @@
   this->Save();
   ```
 
-  ​
+  再次提醒，如果以上有的地方看得不是很懂的话，请结合源码查看。
 
-  ​
-
+  
 
 ### 五、功能模块分析
 
-1. ​
+用户输入相应的序号，即调用相应的功能
 
-### 六、源码展示及分析
+#### 0.退出管理程序
+
+```
+void WorkManager::ExitSystem()
+{
+	cout << "欢迎下次使用" << endl;
+	system("pause");
+	exit(0);
+}
+```
+
+退出程序较为简单，当用户选择0之后，进入此函数并暂停屏幕，当用户输入任何内容时就调用exit(0)退出程序。
+
+#### 1.增加职工信息
+
+```
+void WorkManager::Add_Emp()
+{
+	cout << "请添加职工数量：" << endl;
+	int addNum = 0;//新添加的用户的总数
+	cin >> addNum;
+	if (addNum > 0)
+	{
+		int newSize = this->m_EmpNum + addNum;
+		Worker **newSpace = new Worker*[newSize];
+		if (this->m_EmpArray != NULL)
+		{
+			for (int i = 0; i < this->m_EmpNum; i++)
+			{
+				newSpace[i] = this->m_EmpArray[i];
+			}
+		}
+		for (int i = 0; i < addNum; i++)
+		{
+			int id;
+			string name;
+			int dSelect;
+			cout << "请输入第" << i + 1 << "个职工编号" << endl;
+			cin >> id;
+			cout << "请输入第" << i + 1 << "个职工姓名" << endl;
+			cin >> name;
+			cout << "请输入第" << i + 1 << "个部门编号" << endl;
+			cout << "1.普通职工" << endl;
+			cout << "2.经理" << endl;
+			cout << "3.老板" << endl;
+			cin >> dSelect;
+
+			Worker *worker = NULL;
+			switch (dSelect)
+			{
+			case 1:
+				worker = new Employee(id, name, 1);
+				break;
+			case 2:
+				worker = new Manager(id, name, 2);
+				break;
+			case 3:
+				worker = new Boss(id, name, 3);
+				break;
+			default:
+				break;
+			}
+			newSpace[this->m_EmpNum + i] = worker;
+		}
+		delete[] this->m_EmpArray;
+		this->m_EmpArray = newSpace;
+		this->m_EmpNum = newSize;
+		cout << "成功添加" << addNum << "名新职工"<<endl;
+		this->Save();//通过this指针来
+		this->m_FileIsEmpty = false;
+	}
+	else
+	{
+		cout << "数据输入有误" << endl;
+	}
+	system("pause");
+	system("cls");
+}
+```
+
+
+
+#### 2.显示职工信息
+
+```
+void WorkManager::show_Emp()
+{
+	if (this->m_FileIsEmpty)
+	{
+		cout << "文件不存在或者为空" << endl;
+	}
+	else
+	{
+		for (int i = 0; i < this->m_EmpNum; i++)
+		{
+			//利用多态调用接口
+			this->m_EmpArray[i]->showInfo();
+		}
+	}
+	system("pause");
+	system("cls");
+}
+```
+
+注意，这里首先要判断文件内容是否为空，如果为空就不需要进行下去了(这里的m_FileIsEmpty不单单是文件为空，作为中间量的员工数组也是空的哦，因此每次操作都是先对员工数组进行操作再将它保存至文件中)。
+
+#### 3.删除离职员工
+
+```
+
+```
+
+
+
+#### 4.修改职工信息
+
+```
+
+```
+
+
+
+#### 5.查找职工信息
+
+```
+
+```
+
+
+
+#### 6.排序职工信息
+
+```
+
+```
+
+
+
+#### 7.清空所有文档
+
+```
+
+```
+
+
+
+### 六、完整源码展示
 
 ### 七、反思和总结
 
