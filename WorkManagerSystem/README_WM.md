@@ -262,7 +262,6 @@
 
   再次提醒，如果以上有的地方看得不是很懂的话，请结合源码查看。
 
-  
 
 ### 五、功能模块分析
 
@@ -270,7 +269,7 @@
 
 #### 0.退出管理程序
 
-```
+```C++
 void WorkManager::ExitSystem()
 {
 	cout << "欢迎下次使用" << endl;
@@ -283,7 +282,7 @@ void WorkManager::ExitSystem()
 
 #### 1.增加职工信息
 
-```
+```C++
 void WorkManager::Add_Emp()
 {
 	cout << "请添加职工数量：" << endl;
@@ -348,11 +347,11 @@ void WorkManager::Add_Emp()
 }
 ```
 
-
+当用户选择1之后，提示用户输入所要添加的职工数量，用addNum来保存数量，只有输入的职工数量大于零时才会执行添加操作，首先将员工总的数量进行刷新，然后在堆中创建新的总的空间，接着再将原来的数据拷贝到新的空间当中，然后再将要加入的新职工加入到新的空间当中，当做好之后，再将原来的空间释放掉，使原数组指针指向新的空间，最后将职工人数、文件数据、文件是否为空状态更新。
 
 #### 2.显示职工信息
 
-```
+```C++
 void WorkManager::show_Emp()
 {
 	if (this->m_FileIsEmpty)
@@ -376,45 +375,262 @@ void WorkManager::show_Emp()
 
 #### 3.删除离职员工
 
+```C++
+void WorkManager::del_Emp()
+{
+	if (this->m_FileIsEmpty)
+	{
+		cout << "文件位空或者文件不存在" << endl;
+	}
+	else
+	{
+		cout << "请输入想要删除的编号" << endl;
+		int index;
+		cin >> index;
+		if (this->isExist(index)!=-1)
+		{
+			for (int i = index; i < this->m_EmpNum - 1; i++)
+			{
+				this->m_EmpArray[i] = this->m_EmpArray[i + 1];
+			}
+			this->m_EmpNum--;
+			this->Save();
+			cout << "删除成功！" << endl;
+		}
+		else
+		{
+			cout << "你要删除的编号不存在" << endl;
+		}
+	}
+	system("pause");
+	system("cls");
+}
 ```
 
-```
-
-
+首先判断文件状态是否为空，如果为空那么无法删除，当文件不为空的时候，根据输入的编号来判断是否存在是否存在编号，当存在编号的时候，使用for循环让后面的编号依次覆盖掉前面的编号从而实现删除，当数组元素删除后，更新总人数以及文件数据。
 
 #### 4.修改职工信息
 
+```C++
+void WorkManager::Mod_Emp()
+{
+	if (this->m_FileIsEmpty)
+	{
+		cout << "文件不存在！" << endl;
+		
+	}
+	else
+	{
+		cout << "请输入你要修改的编号" << endl;
+		int id;
+		cin >> id;
+		int ret = this->isExist(id);
+		if (ret==-1)
+		{
+			cout << "你所要修改的职工不存在"<<endl;
+		
+		}
+		else
+		{
+			delete m_EmpArray[ret];
+			int newId = 0;
+			string name = "";
+			int dselect = 0;
+			cout << "请输入职工编号：" << endl;
+			cin >> newId;
+			cout << "请输入职工姓名" << endl;
+			cin >> name;
+			cout << "请选择职工职位:" << endl;
+			cout << "1,普通职工"<<endl;
+			cout << "2,部门经理" << endl;
+			cout << "3,老板" << endl;
+			cin >> dselect;
+			//Worker对象要提前定义，因为下面的case不一定会执行，这样会导致wker对象不能赋值到数组当中。
+			Worker* wker=NULL;
+			switch (dselect)
+			{
+			case 1:
+				wker = new Employee(newId, name, dselect);
+				break;
+			case 2:
+				wker = new Manager(newId, name, dselect);
+				break;
+			case 3:
+				wker = new Boss(newId, name, dselect);
+				break;
+			}
+			this->m_EmpArray[ret] = wker;
+			cout << this->m_EmpArray[ret]->m_Id << "编号修改成功" << endl;
+			this->Save();
+		}
+	}
+	system("pause");
+	system("cls");
+}
 ```
 
-```
-
-
+首先判断文件是否为空，当不为空的时候，接收要修改的编号，判断编号是否存在，当编号存在的时候，首先删除对应的职工的空间，然后输入新的职工信息，接着将职工信息保存到数组当中，最后更新文件信息。
 
 #### 5.查找职工信息
 
+```C++
+void WorkManager::Find_Emp()
+{
+	if (this->m_FileIsEmpty)
+	{
+		cout << "文件为空" << endl;
+	}
+	else
+	{
+		cout << "请输入查找方式："<<endl;
+		cout << "1,按照职工编号进行查找" << endl
+			<< "2,按照姓名查找" << endl;
+		int sid;
+		cin >> sid;
+		if (sid == 1)
+		{
+			cout << "请输入职工编号" << endl;
+			int pid;
+			cin >> pid;
+			int ret;
+			ret = this->isExist(pid);
+			if (ret!=-1)
+			{
+				cout << "查找成功" << endl;
+				this->m_EmpArray[ret]->showInfo();
+			}
+			else
+			{ 
+				cout << "你所查找的职工不存在!" << endl;
+			}
+		}
+		else if (sid == 2)
+		{
+			cout << "请输入职工的姓名"<<endl;
+			string name;
+			cin >> name;
+			bool flag = false;
+			for (int i = 0; i < this->m_EmpNum; i++)
+			{
+				if (name == this->m_EmpArray[i]->m_Name)
+				{
+					cout << "根据姓名查找成功！" << endl;
+					this->m_EmpArray[i]->showInfo();
+					flag = true;
+				}
+			}
+			if (flag == false)
+			{
+				cout << "你所查找的员工不存在！"<<endl;
+			}
+
+		}
+		else
+		{
+			cout << "请重新输入"<<endl;
+		}
+	}
+	system("pause");
+	system("cls");
+}
 ```
 
-```
-
-
+首先还是判断文件是否为空，当文件不为空的时候，输入sid选择查找的方式：当选择职工编号时，输入职工编号，判断是否存在，如果存在则将查找的结果显示出来；当选择职工姓名时，使用for循环用输入的姓名与数组中的姓名进行对比，若姓名一致则将结果显示出来，这里有还有个状态位用来表示查找的员工是否存在，若if语句一次都没有执行，则flag依旧是false，则输出所查找的员工不存在。
 
 #### 6.排序职工信息
 
-```
-
+```C++
+void WorkManager::Sort_Emp()
+{
+	if (!this->m_FileIsEmpty)
+	{
+		cout << "请选择排序的方式:" << endl;
+		cout << "1,升序" << endl;
+		cout << "2,降序" << endl;
+		int sid;
+		cin >> sid;
+		int MinorMax;
+		for (int i = 0; i < this->m_EmpNum - 1; i++)
+		{
+			MinorMax = i;
+			for (int j = i + 1; j < this->m_EmpNum; j++)
+			{
+				if (sid == 1)
+				{
+					if (this->m_EmpArray[MinorMax]->m_Id > this->m_EmpArray[j]->m_Id)
+					{
+						MinorMax = j;
+					}
+				}
+				else
+				{
+					if (this->m_EmpArray[MinorMax]->m_Id < this->m_EmpArray[j]->m_Id)
+					{
+						MinorMax = j;
+					}
+				}
+			}
+			if (MinorMax != i)
+			{
+				Worker* temp = this->m_EmpArray[MinorMax];
+				this->m_EmpArray[MinorMax] = this->m_EmpArray[i];
+				this->m_EmpArray[i] = temp;
+			}
+		}
+		cout << "排序成功，排序后的结果是：" << endl;
+		this->Save();
+		this->show_Emp();
+	}
+	else
+	{
+		cout << "文件为空" << endl;
+		system("pause");
+		system("cls");
+	}
+}
 ```
 
 
 
 #### 7.清空所有文档
 
+```C++
+void WorkManager::Clean_File()
+{
+	cout << "确定要清空文件吗？" << endl;
+	cout << "1,确认" << endl;
+	cout << "2,返回" << endl;
+	int select = 0;
+	cin >> select;
+	if (select == 1)
+	{
+		ofstream ofs;
+		ofs.open(FILENAME, ios::trunc);
+		ofs.close();
+		if (this->m_EmpArray != NULL)
+		{
+			for (int i = 0; i < this->m_EmpNum; i++)
+			{
+				if (this->m_EmpArray[i] != NULL)
+				{
+					delete this->m_EmpArray[i];
+				}
+			}
+			this->m_EmpNum = 0;
+			delete[]this->m_EmpArray;
+			this->m_EmpArray = NULL;
+			this->m_FileIsEmpty = true;
+		}
+		cout << "清空成功！"<<endl;
+	}
+	system("pause");
+	system("cls");
+}
 ```
 
-```
 
 
-
-### 六、完整源码展示
+### 六、完整源码
 
 ### 七、反思和总结
 
